@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: online-judge-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: M_asdf_321
+      POSTGRES_DB: online_judge
+      POSTGRES_MULTIPLE_DATABASES: judge0
+    ports:
+      - "5432:5432"  # Изменено с 5433 на стандартный 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-postgres.sql:/docker-entrypoint-initdb.d/01-init-main.sql
+      - ./init-judge0-db.sql:/docker-entrypoint-initdb.d/02-init-judge0.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d online_judge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: online-judge-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  judge0:
+    image: judge0/judge0:latest
+    container_name: online-judge-judge0
+    restart: unless-stopped
+    ports:
+      - "2358:2358"
+    environment:
+      JUDGE0_POSTGRES_HOST: postgres
+      JUDGE0_POSTGRES_PORT: 5432
+      JUDGE0_POSTGRES_USER: judge0
+      JUDGE0_POSTGRES_PASSWORD: judge0_password
+      JUDGE0_POSTGRES_DATABASE: judge0
+      JUDGE0_REDIS_HOST: redis
+      JUDGE0_REDIS_PORT: 6379
+      JUDGE0_REDIS_PASSWORD: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - judge0_data:/var/lib/judge0
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:2358/languages || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+  judge0_data:

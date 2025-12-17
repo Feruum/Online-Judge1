@@ -8,8 +8,8 @@ async function checkSystem() {
   try {
     // PostgreSQL
     const client = new Client({
-      host: '127.0.0.1',
-      port: 5433,
+      host: 'localhost',
+      port: 5432,  // Изменено на стандартный порт PostgreSQL
       user: 'postgres',
       password: 'M_asdf_321',
       database: 'online_judge'
