@@ -1,0 +1,18 @@
+# Database
+DATABASE_URL=postgresql://postgres:M_asdf_321@localhost:5432/online_judge
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+
+# Judge0 Configuration - NOW USING REAL JUDGE0 IN VIRTUALBOX VM!
+JUDGE0_MOCK=false
+JUDGE0_URL=http://10.0.2.15:2358
+
+# VirtualBox Ubuntu 22.04 VM Configuration:
+# - IP: 10.0.2.15 (VirtualBox NAT network)
+# - Judge0 v1.13.1 with proper GRUB cgroups config
+# - Port forwarding configured in VirtualBox
