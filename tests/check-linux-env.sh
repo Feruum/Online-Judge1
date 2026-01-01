@@ -82,3 +82,15 @@ echo
 echo "🚀 Для запуска выполните:"
 echo "   chmod +x start.sh"
 echo "   ./start.sh"
+
+
+
+
+
+
+
+
+
+
+
+

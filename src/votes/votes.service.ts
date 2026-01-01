@@ -11,7 +11,7 @@ export interface CreateVoteDto {
 
 @Injectable()
 export class VotesService {
-  constructor(private readonly submissionsService: SubmissionsService) {}
+  constructor(private readonly submissionsService: SubmissionsService) { }
 
   async create(createVoteDto: CreateVoteDto, userId: number) {
     const { submissionId, voteType } = createVoteDto;
@@ -71,12 +71,13 @@ export class VotesService {
     };
   }
 
-  async getTopSolutions(problemId: number, userId: number) {
-    // Check if user has solved the problem
-    const hasSolved = await this.submissionsService.checkUserSolvedProblem(userId, problemId);
-
-    if (!hasSolved) {
-      throw new ForbiddenException('You must solve the problem to view top solutions');
+  async getTopSolutions(problemId: number, userId: number, isAdmin: boolean = false) {
+    // Check if user has solved the problem (skip for admins)
+    if (!isAdmin) {
+      const hasSolved = await this.submissionsService.checkUserSolvedProblem(userId, problemId);
+      if (!hasSolved) {
+        throw new ForbiddenException('You must solve the problem to view top solutions');
+      }
     }
 
     // Get top solutions ordered by votes
@@ -88,7 +89,8 @@ export class VotesService {
         votes: submissions.votes,
         voteType: submissions.voteType,
         createdAt: submissions.createdAt,
-        userId: submissions.userId, // Note: In production, you might want to join with users table to get username
+        userId: submissions.userId,
+        status: submissions.status,
       })
       .from(submissions)
       .where(
@@ -99,5 +101,19 @@ export class VotesService {
         )
       )
       .orderBy(sql`${submissions.votes} desc`, sql`${submissions.createdAt} desc`);
+  }
+
+  async markAsTopSolution(submissionId: number, voteType: 'best_practice' | 'clever') {
+    // Increment votes and set vote type
+    await db
+      .update(submissions)
+      .set({
+        votes: sql`${submissions.votes} + 10`, // Admin boost
+        voteType: voteType,
+        updatedAt: new Date(),
+      })
+      .where(eq(submissions.id, submissionId));
+
+    return { success: true, message: 'Marked as top solution' };
   }
 }

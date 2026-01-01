@@ -93,25 +93,43 @@ export class SubmissionsProcessor extends WorkerHost {
 
         finalResult = result;
         this.logger.debug(`Test case completed with status: ${result.status.description}`);
+        this.logger.debug(`stdout: "${result.stdout}", expected: "${testCase.expectedOutput}"`);
 
         // Check if this test case passed
-        if (!this.judgeService.isAccepted(result)) {
+        // Judge0 status=3 only means code executed successfully, NOT that output is correct
+        // We need to manually compare stdout with expected output
+        if (result.status.id !== 3) {
+          // Runtime error, TLE, etc.
           allPassed = false;
           finalStatus = this.mapJudge0StatusToOurs(result.status.id);
           this.logger.debug(`Test case failed with status: ${finalStatus}`);
-          break; // Stop on first failure
+          break;
         }
+
+        // Manually compare output (trim whitespace for comparison)
+        const actualOutput = (result.stdout || '').trim();
+        const expectedOutput = (testCase.expectedOutput || '').trim();
+
+        if (actualOutput !== expectedOutput) {
+          allPassed = false;
+          finalStatus = 'wrong_answer';
+          this.logger.debug(`Wrong answer: got "${actualOutput}", expected "${expectedOutput}"`);
+          break;
+        }
+
+        this.logger.debug(`Test case passed!`);
       }
 
       // Update submission status based on results
       const status = allPassed ? 'accepted' : finalStatus;
+      const isPublic = allPassed; // Auto-publish accepted solutions
 
       await db
         .update(submissions)
-        .set({ status, updatedAt: new Date() })
+        .set({ status, isPublic, updatedAt: new Date() })
         .where(eq(submissions.id, submissionId));
 
-      this.logger.log(`Submission ${submissionId} completed with status: ${status}`);
+      this.logger.log(`Submission ${submissionId} completed with status: ${status}, isPublic: ${isPublic}`);
 
       return { submissionId, status, result: finalResult };
     } catch (error) {

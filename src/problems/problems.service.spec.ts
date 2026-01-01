@@ -109,14 +109,16 @@ describe('ProblemsService', () => {
       const createProblemDto = {
         title: 'New Problem',
         description: 'Description of new problem',
-        testCases: [
-          { input: 'input', expectedOutput: 'output' },
-        ],
+        testCases: JSON.stringify([
+          { input: 'input', output: 'output' },
+        ]),
       };
 
       const mockCreatedProblem = {
         id: 1,
-        ...createProblemDto,
+        title: 'New Problem',
+        description: 'Description of new problem',
+        testCases: [{ input: 'input', output: 'output' }],
         createdAt: new Date(),
       };
 
@@ -136,7 +138,7 @@ describe('ProblemsService', () => {
       const createProblemDto = {
         title: 'New Problem',
         description: 'Description',
-        testCases: [],
+        testCases: JSON.stringify([]),
       };
 
       await expect(service.create(createProblemDto, 'user')).rejects.toThrow('Only admins can create problems');

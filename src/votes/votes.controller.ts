@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   UseGuards,
   Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { VotesService, CreateVoteDto } from './votes.service';
@@ -23,7 +24,7 @@ interface AuthenticatedRequest extends Request {
 @Controller('votes')
 @UseGuards(JwtAuthGuard)
 export class VotesController {
-  constructor(private readonly votesService: VotesService) {}
+  constructor(private readonly votesService: VotesService) { }
 
   @Post()
   async create(@Body() createVoteDto: CreateVoteDto, @Req() req: AuthenticatedRequest) {
@@ -35,6 +36,18 @@ export class VotesController {
     @Param('problemId', ParseIntPipe) problemId: number,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.votesService.getTopSolutions(problemId, req.user.id);
+    const isAdmin = req.user.role === 'admin';
+    return this.votesService.getTopSolutions(problemId, req.user.id, isAdmin);
+  }
+
+  @Post('mark-top-solution')
+  async markAsTopSolution(
+    @Body() body: { submissionId: number; voteType: 'best_practice' | 'clever' },
+    @Req() req: AuthenticatedRequest,
+  ) {
+    if (req.user.role !== 'admin') {
+      throw new ForbiddenException('Only admins can mark top solutions');
+    }
+    return this.votesService.markAsTopSolution(body.submissionId, body.voteType);
   }
 }

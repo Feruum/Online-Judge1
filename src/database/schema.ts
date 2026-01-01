@@ -21,7 +21,13 @@ export const problems = pgTable('problems', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description').notNull(),
-  testCases: jsonb('test_cases').notNull(), // Array of {input: string, expectedOutput: string}
+  difficulty: text('difficulty').default('Easy'),
+  slug: text('slug'),
+  examples: jsonb('examples'), // Array of examples
+  testCases: jsonb('test_cases'), // Array of {input: string, expectedOutput: string}
+  constraints: jsonb('constraints'), // Array of constraints
+  starterCode: jsonb('starter_code'), // Object with language keys
+  tags: jsonb('tags'), // Array of tags
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -62,3 +68,32 @@ export type NewSubmission = typeof submissions.$inferInsert;
 
 export type Vote = typeof votes.$inferSelect;
 export type NewVote = typeof votes.$inferInsert;
+
+// Discussions table
+export const discussions = pgTable('discussions', {
+  id: serial('id').primaryKey(),
+  problemId: integer('problem_id').notNull().references(() => problems.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  parentId: integer('parent_id').references(() => discussions.id, { onDelete: 'cascade' }),
+  votes: integer('votes').notNull().default(0),
+  isAnswer: boolean('is_answer').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Discussion Votes table
+export const discussionVotes = pgTable('discussion_votes', {
+  id: serial('id').primaryKey(),
+  discussionId: integer('discussion_id').notNull().references(() => discussions.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  voteType: integer('vote_type').notNull(), // 1 for upvote, -1 for downvote
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type Discussion = typeof discussions.$inferSelect;
+export type NewDiscussion = typeof discussions.$inferInsert;
+
+export type DiscussionVote = typeof discussionVotes.$inferSelect;
+export type NewDiscussionVote = typeof discussionVotes.$inferInsert;

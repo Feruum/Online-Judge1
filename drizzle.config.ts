@@ -1,11 +1,12 @@
 import type { Config } from 'drizzle-kit';
 
+const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:M_asdf_321@localhost:5432/online_judge';
+
 export default {
   schema: './src/database/schema.ts',
   out: './drizzle',
-  driver: 'pg',
+  dialect: 'postgresql',
   dbCredentials: {
-    connectionString:
-      process.env.DATABASE_URL || 'postgresql://postgres:M_asdf_321@localhost:5433/online_judge',
+    url: databaseUrl,
   },
 } satisfies Config;

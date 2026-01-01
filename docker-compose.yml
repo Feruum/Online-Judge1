@@ -1,6 +1,18 @@
-version: '3.8'
-
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: online-judge-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - default
+
   postgres:
     image: postgres:15
     container_name: online-judge-postgres
@@ -36,35 +48,40 @@ services:
       timeout: 5s
       retries: 5
 
-  judge0:
-    image: judge0/judge0:latest
-    container_name: online-judge-judge0
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: online-judge-backend
     restart: unless-stopped
     ports:
-      - "2358:2358"
+      - "3001:3000"
     environment:
-      JUDGE0_POSTGRES_HOST: postgres
-      JUDGE0_POSTGRES_PORT: 5432
-      JUDGE0_POSTGRES_USER: judge0
-      JUDGE0_POSTGRES_PASSWORD: judge0_password
-      JUDGE0_POSTGRES_DATABASE: judge0
-      JUDGE0_REDIS_HOST: redis
-      JUDGE0_REDIS_PORT: 6379
-      JUDGE0_REDIS_PASSWORD: ""
+      - NODE_ENV=production
+      - JUDGE0_URL=http://host.docker.internal:2358
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     volumes:
-      - judge0_data:/var/lib/judge0
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:2358/languages || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+      - ./dist:/app/dist:ro
+
+  frontend:
+    build:
+      context: ./nexus-frontend
+      dockerfile: Dockerfile
+    container_name: online-judge-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=/api
 
 volumes:
   postgres_data:
   redis_data:
-  judge0_data:
+
+

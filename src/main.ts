@@ -12,8 +12,11 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }));
 
-  // Enable CORS
-  app.enableCors();
+  // Enable CORS for frontend
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    credentials: true,
+  });
 
   // Global prefix for all routes
   app.setGlobalPrefix('api');
