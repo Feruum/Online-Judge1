@@ -114,14 +114,6 @@ docker-compose logs -f backend
 
 
 How to make a user an Admin
-Run the following command in your terminal, replacing <username> with the actual username of the user you want to promote:
-
-bash
-npx ts-node src/scripts/set-admin.ts <username>
-Example: If your username is Ferumm, run:
-
-bash
-npx ts-node src/scripts/set-admin.ts Ferumm
-This script will connect to your database, find the user, and update their role to admin.
+docker exec -it online-judge-postgres psql -U postgres -d online_judge -c "UPDATE users SET role = 'admin' WHERE username = 'YOUR_NAME';"
 ---
 *Developed by Ferumm*
