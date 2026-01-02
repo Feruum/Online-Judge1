@@ -69,6 +69,7 @@ export function LeftSidebar() {
           icon={<Trophy className="w-5 h-5" />}
           label="Contest"
           active={false}
+          onClick={() => alert('🏆 Contest feature coming soon!')}
         />
         <NavItem
           icon={<MessageSquare className="w-5 h-5" />}
@@ -96,7 +97,10 @@ export function LeftSidebar() {
 
       {/* User Profile */}
       <div className="px-6 py-4 border-t border-border">
-        <div className="flex items-center gap-3">
+        <div
+          className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => navigate('/profile')}
+        >
           <Avatar className="w-10 h-10">
             <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
               {user?.username?.substring(0, 2).toUpperCase() || 'US'}

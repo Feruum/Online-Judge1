@@ -70,7 +70,10 @@ export function ProblemsPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-right hidden sm:block">
+              <div
+                className="text-right hidden sm:block cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => navigate('/profile')}
+              >
                 <p className="text-sm font-medium text-foreground">{user?.username}</p>
                 <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
